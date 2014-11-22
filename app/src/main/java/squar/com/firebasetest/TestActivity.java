@@ -7,6 +7,7 @@ import com.firebase.client.FirebaseError;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
@@ -61,6 +62,7 @@ public class TestActivity extends Activity implements Firebase.AuthResultHandler
         updateTime();
       }
     }, 1000, 1000);
+    loadToken();
   }
 
   private void updateTime() {
@@ -86,10 +88,16 @@ public class TestActivity extends Activity implements Firebase.AuthResultHandler
     return tokenGenerator.createToken(authPayload, tokenOptions);
   }
 
+  private void loadToken() {
+    mCurrentToken = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "");
+    mTokenInfo.setText("current token: " + mCurrentToken);
+  }
+
   public void generateToken(View view) {
     mCurrentToken = generateToken(EXPIRATION_TIME * 1000);
     currentTime = EXPIRATION_TIME + 10;
     mTokenInfo.setText("current token: " + mCurrentToken);
+    PreferenceManager.getDefaultSharedPreferences(this).edit().putString("token", mCurrentToken).commit();
   }
 
   public void authWithCurrentToken(View view) {

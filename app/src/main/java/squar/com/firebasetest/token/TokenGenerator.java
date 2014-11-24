@@ -100,12 +100,12 @@ public class TokenGenerator {
   }
 
   private void validateToken(String functionName, Map<String, Object> data, boolean isAdminToken) {
-    boolean containsUid = (data != null && data.containsKey("id"));
-    if ((!containsUid && !isAdminToken) || (containsUid && !(data.get("id") instanceof String))) {
-      throw new IllegalArgumentException(functionName + ": Data payload must contain a \"id\" key that must be a string.");
-    } else if (containsUid && data.get("id").toString().length() > 256) {
+    boolean containsUid = (data != null && data.containsKey("uid"));
+    if ((!containsUid && !isAdminToken) || (containsUid && !(data.get("uid") instanceof String))) {
+      throw new IllegalArgumentException(functionName + ": Data payload must contain a \"uid\" key that must be a string.");
+    } else if (containsUid && data.get("uid").toString().length() > 256) {
       throw new IllegalArgumentException(
-          functionName + ": Data payload must contain a \"id\" key that must not be longer than 256 characters.");
+          functionName + ": Data payload must contain a \"uid\" key that must not be longer than 256 characters.");
     }
   }
 }

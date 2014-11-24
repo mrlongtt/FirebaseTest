@@ -81,7 +81,7 @@ public class TestActivity extends Activity implements Firebase.AuthResultHandler
 
   private String generateToken(long expireTime) {
     Map<String, Object> authPayload = new HashMap<String, Object>();
-    authPayload.put("id", UUID.randomUUID().toString());
+    authPayload.put("uid", UUID.randomUUID().toString());
     TokenOptions tokenOptions = new TokenOptions();
     tokenOptions.setExpires(new Date(System.currentTimeMillis() + expireTime));
     TokenGenerator tokenGenerator = new TokenGenerator(getString(R.string.firebase_secret_key));

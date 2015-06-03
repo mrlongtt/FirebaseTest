@@ -1,24 +1,21 @@
 package squar.com.firebasetest;
 
+import com.google.gson.Gson;
+
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 
 import squar.com.firebasetest.token.TokenGenerator;
@@ -29,119 +26,101 @@ import squar.com.firebasetest.token.TokenOptions;
  */
 public class TestActivity extends Activity implements Firebase.AuthResultHandler, Firebase.AuthStateListener {
 
-  private TextView mTokenInfo, mMethodOnAuthenticated, mMethodOnAuthenticateError, mMethodOnAuthStateChange, mTimeInfo;
-
-  private Timer mTimer;
-
-  private int currentTime;
-
-  private Handler mHandler = new Handler();
-
   private Firebase mFirebase;
 
-  private String mCurrentToken;
+  private static final int EXPIRATION_TIME = 3600000;
 
-  private static final int EXPIRATION_TIME = 30;
+  private TextView mTextInfo;
+
+  private Gson GSON = new Gson();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    mTokenInfo = (TextView) findViewById(R.id.token_info);
-    mMethodOnAuthenticated = (TextView) findViewById(R.id.method_onAuthenticated_info);
-    mMethodOnAuthenticateError = (TextView) findViewById(R.id.method_onAuthenticateError_info);
-    mMethodOnAuthStateChange = (TextView) findViewById(R.id.method_onAuthStateChange_info);
-    mTimeInfo = (TextView) findViewById(R.id.time_info);
+    mTextInfo = (TextView) findViewById(R.id.text_info);
     Firebase.setAndroidContext(this);
     mFirebase = new Firebase(getString(R.string.firebase_url));
-    mFirebase.addAuthStateListener(this);
-    mTimer = new Timer("Timer");
-    mTimer.scheduleAtFixedRate(new TimerTask() {
-      @Override
-      public void run() {
-        updateTime();
-      }
-    }, 1000, 1000);
-    loadToken();
+    //    mFirebase.addAuthStateListener(this);
+    //    syncFromFirebase();
   }
 
-  private void updateTime() {
-    currentTime--;
-    mHandler.post(new Runnable() {
-      @Override
-      public void run() {
-        if (currentTime > 0) {
-          mTimeInfo.setText(String.valueOf(currentTime));
-        } else {
-          mTimeInfo.setText("token expired");
-        }
-      }
-    });
+  public void clear(View v) {
+    mTextInfo.setText("");
   }
 
-  private String generateToken(long expireTime) {
+  private void authenticate() {
     Map<String, Object> authPayload = new HashMap<String, Object>();
     authPayload.put("uid", UUID.randomUUID().toString());
     TokenOptions tokenOptions = new TokenOptions();
-    tokenOptions.setExpires(new Date(System.currentTimeMillis() + expireTime));
+    tokenOptions.setExpires(new Date(System.currentTimeMillis() + EXPIRATION_TIME));
     TokenGenerator tokenGenerator = new TokenGenerator(getString(R.string.firebase_secret_key));
-    return tokenGenerator.createToken(authPayload, tokenOptions);
-  }
-
-  private void loadToken() {
-    mCurrentToken = PreferenceManager.getDefaultSharedPreferences(this).getString("token", "");
-    mTokenInfo.setText("current token: " + mCurrentToken);
-  }
-
-  public void generateToken(View view) {
-    mCurrentToken = generateToken(EXPIRATION_TIME * 1000);
-    currentTime = EXPIRATION_TIME + 10;
-    mTokenInfo.setText("current token: " + mCurrentToken);
-    PreferenceManager.getDefaultSharedPreferences(this).edit().putString("token", mCurrentToken).commit();
-  }
-
-  public void authWithCurrentToken(View view) {
-    if (TextUtils.isEmpty(mCurrentToken)) {
-      Toast.makeText(this, "please generate token first", Toast.LENGTH_SHORT).show();
-    } else {
-      mFirebase.authWithCustomToken(mCurrentToken, this);
-    }
-  }
-
-  public void clear(View view) {
-    mTokenInfo.setText("");
-    mMethodOnAuthenticated.setText("");
-    mMethodOnAuthenticateError.setText("");
-    mMethodOnAuthStateChange.setText("");
-    mTimeInfo.setText("");
+    mFirebase.authWithCustomToken(tokenGenerator.createToken(authPayload, tokenOptions), this);
   }
 
   @Override
   protected void onDestroy() {
     super.onDestroy();
-    mTimer.cancel();
     mFirebase.removeAuthStateListener(this);
   }
 
   @Override
   public void onAuthStateChanged(AuthData authData) {
-    mMethodOnAuthStateChange.setText("onAuthStateChanged called at " + formatDate(System.currentTimeMillis())
-        + (authData == null ? " token expired" : (", expire at " + formatDate(authData.getExpires() * 1000))));
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        mTextInfo.append("Authenticate changed \n");
+      }
+    });
+
+    if (authData == null) {
+      authenticate();
+    } else {
+      syncFromFirebase();
+    }
+  }
+
+  public void sync(View view) {
+    syncFromFirebase();
+  }
+
+  private void syncFromFirebase() {
+    mFirebase.child("test/data").addListenerForSingleValueEvent(new ValueEventListener() {
+      @Override
+      public void onDataChange(final DataSnapshot dataSnapshot) {
+        runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            mTextInfo.setText(GSON.toJson(dataSnapshot.getValue()) + "\n");
+          }
+        });
+      }
+
+      @Override
+      public void onCancelled(FirebaseError firebaseError) {
+
+      }
+    });
   }
 
   @Override
   public void onAuthenticated(AuthData authData) {
-    mMethodOnAuthenticated.setText("onAuthenticated called at " + formatDate(System.currentTimeMillis())
-        + ", token expire at " + formatDate(authData.getExpires() * 1000));
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        mTextInfo.append("Authenticated \n");
+      }
+    });
+    syncFromFirebase();
   }
 
   @Override
   public void onAuthenticationError(FirebaseError firebaseError) {
-    mMethodOnAuthenticateError
-        .setText("onAuthenticationError called at:" + formatDate(System.currentTimeMillis()) + ", error:" + firebaseError.getMessage());
-  }
-
-  private String formatDate(long dateInMilis) {
-    return new SimpleDateFormat("HH:mm:ss").format(dateInMilis);
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        mTextInfo.append("Authenticate error \n");
+      }
+    });
   }
 }

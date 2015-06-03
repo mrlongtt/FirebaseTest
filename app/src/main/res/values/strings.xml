@@ -1,5 +1,5 @@
 <resources>
   <string name="app_name">FirebaseTest</string>
-  <string name="firebase_secret_key">u9Z1p4Yh3yj2vczKkTg7kHsmbpX5aSTjZyl50CM7</string>
-  <string name="firebase_url">https://mychat-datatest.firebaseio.com/</string>
+  <string name="firebase_secret_key">XNhjHRwnqiMBxbFc7RybrxICIjhFrTjQYqr5g2kj</string>
+  <string name="firebase_url">https://glowing-fire-9402.firebaseio.com/</string>
 </resources>

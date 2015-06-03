@@ -1,62 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
   android:layout_width="match_parent"
-  android:layout_height="match_parent">
+  android:layout_height="match_parent"
+  android:orientation="vertical">
 
   <TextView
+    android:id="@+id/text_info"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textSize="14sp"
-    android:lines="3"
-    android:gravity="center"
-    android:id="@+id/token_info" />
-
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textSize="14sp"
-    android:lines="3"
-    android:gravity="center"
-    android:id="@+id/method_onAuthenticated_info" />
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textSize="14sp"
-    android:lines="3"
-    android:gravity="center"
-    android:id="@+id/method_onAuthStateChange_info" />
-
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textSize="14sp"
-    android:lines="3"
-    android:gravity="center"
-    android:id="@+id/method_onAuthenticateError_info" />
-  <TextView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textSize="14sp"
-    android:lines="3"
-    android:gravity="center"
-    android:id="@+id/time_info" />
-
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:textSize="25sp" />
   <Button
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Generate Token"
-    android:onClick="generateToken" />
-
+    android:onClick="sync"
+    android:text="sync" />
   <Button
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:text="Auth with current token"
-    android:onClick="authWithCurrentToken" />
-  <Button
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="clear"
-    android:onClick="clear" />
+    android:onClick="clear"
+    android:text="clear" />
 </LinearLayout>
